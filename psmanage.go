@@ -16,7 +16,7 @@ import (
 // Check if an error has occured,
 // and if it has run panic.
 func check(e error) {
-	
+
 	// If error is not null
 	if e != nil {
 
@@ -26,46 +26,46 @@ func check(e error) {
 }
 
 // isdir(string) : bool
-// Given a file path, returns if 
-// the file is a folder 
+// Given a file path, returns if
+// the file is a folder
 // or a standard file.
 func isdir(path string) (b bool) {
 
 	// Test the folder path
-	fi, err := os.Stat(path);
+	fi, err := os.Stat(path)
 
 	// Ensure no error occured
 	check(err)
 
 	// Switch on file mode
 	switch mode := fi.Mode(); {
-		
-		// If the file 
-		// is a directory
-		case mode.IsDir():
-			return true
 
-		// Otherwise, file
-		// is a standard file
-		default:
-			return false
+	// If the file
+	// is a directory
+	case mode.IsDir():
+		return true
+
+	// Otherwise, file
+	// is a standard file
+	default:
+		return false
 	}
 }
 
 // children(): void
-// Gets all of the files and 
+// Gets all of the files and
 // folders in a given file path.
 func children(root string) (f []string) {
 
 	// Empty array, will be
 	// populated and returned
-	var files []string;
+	var files []string
 
 	// Walk through all of the files in the 'root' directory
-	filepath.Walk(root, func(path string, info os.FileInfo, err error) (error) {
+	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 
 		// Append the 'path' string to the files array
-		files = append(files,path);
+		files = append(files, path)
 
 		// Return nil if successful
 		return nil
@@ -73,7 +73,7 @@ func children(root string) (f []string) {
 
 	// Return the files
 	// to the terminal
-	return files;
+	return files
 }
 
 // write(path: string, str: string): void
@@ -82,23 +82,23 @@ func children(root string) (f []string) {
 func write(path, str string) {
 
 	// Create a folder to write the old string to
-	file, err := os.Create(path);
+	file, err := os.Create(path)
 
 	// If the file failed to create
-	if (err != nil) {
+	if err != nil {
 
 		// Do nothing
 
 	} else {
 
 		// Trim the leading and trailing newlines
-		content := strings.Trim(str,"\r\n ");
+		content := strings.Trim(str, "\r\n ")
 
-		// Write the string to the file 
-		_, err = file.WriteString(content);
+		// Write the string to the file
+		_, err = file.WriteString(content)
 
 		// If string failed to write
-		if (err != nil) {
+		if err != nil {
 
 			// Do nothing
 
@@ -107,16 +107,53 @@ func write(path, str string) {
 	}
 
 	// Defer the file handle closing
-	defer file.Close();
+	defer file.Close()
+}
+
+// remove(path: string): error
+// Given a file path, removes all of the
+// contents of the file path and
+func clear(path string) (e error) {
+
+	// Get all of the files in the directory
+	files, err := filepath.Glob(filepath.Join(path, "*"))
+
+	// If an error has occured
+	if err != nil {
+
+		// Return the error
+		return err
+	}
+
+	// Iterate over files in the directory
+	for _, file := range files {
+
+		// If the filepath does NOT include '.git'
+		if !strings.Contains(file, ".git") {
+
+			// Remove the current file
+			err = os.RemoveAll(file)
+
+			// If an error has occured
+			if err != nil {
+
+				// Return it
+				return err
+			}
+		}
+	}
+
+	// No error, return null
+	return nil
 }
 
 // main(void): void
 // Main function
-func main(){
+func main() {
 
 	// Get the arguments
 	// (Excluding the file name)
-	args := os.Args[1:];
+	args := os.Args[1:]
 
 	// File name + File Path
 	// path := os.Args[0];
@@ -126,13 +163,13 @@ func main(){
 	if len(args) > 1 {
 
 		// Dereference the action
-		action := args[0];
+		action := args[0]
 
 		// First Argument
-		source := args[1];
+		source := args[1]
 
 		// Second argument
-		var target string;
+		var target string
 
 		// Two possible actions:
 		// import, export
@@ -143,38 +180,38 @@ func main(){
 			if len(args) > 2 {
 
 				// Second Argument
-				target = args[2];
+				target = args[2]
 
 			} else {
 
 				// Use default (input folder plus extension)
-				target = source + ".sd";
+				target = source + ".sd"
 			}
 
 			// psmanage import [sourcefile] [targetfolder]
 			// e.g. psmanage import teams.sd teams
 
 			// String storing all of the teams
-			var library string;
+			var library string
 
 			// Get the child files in the source folder
-			folder := children(source);
+			folder := children(source)
 
-			// Get the folder path depth 
+			// Get the folder path depth
 			// in the source folder
-			sdepth := strings.Count(source, "\\") + 1;
+			sdepth := strings.Count(source, "\\") + 1
 
-			// Iterate over all of the 
+			// Iterate over all of the
 			// files in the folder
 			for _, file := range folder {
 
-				// Get the folder path depth 
+				// Get the folder path depth
 				// of the current folder
-				depth := strings.Count(file,"\\");
+				depth := strings.Count(file, "\\")
 
 				// Get difference between
 				// the depth and source depth
-				diff := depth - sdepth;
+				diff := depth - sdepth
 
 				// One layer of depth
 				// - Format Level Depth
@@ -182,56 +219,56 @@ func main(){
 
 					// If the file is not a folder AND
 					// If the file has the '.sd' extension
-					if !isdir(file) && strings.HasSuffix(file,".sd") {
+					if !isdir(file) && strings.HasSuffix(file, ".sd") {
 
 						// Read the content from the file
-						data, err := ioutil.ReadFile(file);
+						data, err := ioutil.ReadFile(file)
 
 						// Check that no error has occured
-						check(err);
+						check(err)
 
-						// Split filename and foldername 
+						// Split filename and foldername
 						// on the backslash (windows separator)
-						files := strings.Split(strings.Replace(file,".sd","",1),"\\");
+						files := strings.Split(strings.Replace(file, ".sd", "", 1), "\\")
 
 						// Get the string from the raw data
 						// Create the team name from the filename + folder name
-						content := "=== [" + files[len(files)-2] + "] " + files[len(files)-1] + " ===\n\n" + string(data);
+						content := "=== [" + files[len(files)-2] + "] " + files[len(files)-1] + " ===\n\n" + string(data)
 
 						// Append the content from the page to your teams library
 						// Purge the leading and trailing spaces before adding
-						library += strings.TrimSpace(content) + "\n\n";
+						library += strings.TrimSpace(content) + "\n\n"
 
 					}
 
-				// Two layers of depth
-				// - Folder Level Depth
+					// Two layers of depth
+					// - Folder Level Depth
 				} else if diff == 2 {
 
 					// If the file is not a folder, and has the '.sd' extension
-					if !isdir(file) && strings.HasSuffix(file,".sd") {
+					if !isdir(file) && strings.HasSuffix(file, ".sd") {
 
 						// Read the content from the file
-						data, err := ioutil.ReadFile(file);
+						data, err := ioutil.ReadFile(file)
 
 						// Check that no error has occured
-						check(err);
+						check(err)
 
-						// Split filename and foldername 
+						// Split filename and foldername
 						// on the backslash (windows separator)
-						files := strings.Split(strings.Replace(file,".sd","",1),"\\");
+						files := strings.Split(strings.Replace(file, ".sd", "", 1), "\\")
 
 						// Get the string from the raw data
 						// Create the team name from the file name + folder name + subfolder name
-						content := "=== [" + files[len(files)-3] + "] " + files[len(files)-2] + " / " + files[len(files)-1] + " ===\n\n" + string(data);
+						content := "=== [" + files[len(files)-3] + "] " + files[len(files)-2] + " / " + files[len(files)-1] + " ===\n\n" + string(data)
 
 						// Append the content from the page to your teams library
 						// Purge the leading and trailing spaces before adding
-						library += strings.TrimSpace(content) + "\n\n";
+						library += strings.TrimSpace(content) + "\n\n"
 					}
 
-				// No layer(s) of depth or
-				// more than two levels
+					// No layer(s) of depth or
+					// more than two levels
 				} else {
 
 					// Can ignore it
@@ -239,21 +276,21 @@ func main(){
 				}
 			}
 
-			// Open the output file 
-			outfile, err := os.Create(target);
+			// Open the output file
+			outfile, err := os.Create(target)
 
 			// Check for any errors
-			check(err);
+			check(err)
 
 			// Write the imported library to the target file
 			// Strim leading / trailing whitespace, newline
-			_, err = outfile.WriteString(strings.Trim(library,"\r\n "));
+			_, err = outfile.WriteString(strings.Trim(library, "\r\n "))
 
 			// Check for any errors
-			check(err);
+			check(err)
 
 			// Close the output file
-			defer outfile.Close();
+			defer outfile.Close()
 
 		} else if action == "export" {
 
@@ -261,53 +298,71 @@ func main(){
 			if len(args) > 2 {
 
 				// Second Argument
-				target = args[2];
+				target = args[2]
 
 			} else {
 
 				// Use default (input filename minus extension)
-				target = strings.Split(source,".")[0];
+				target = strings.Split(source, ".")[0]
 			}
 
 			// psmanage export [sourcefolder] [targetfile]
 			// e.g. psmanage export teams teams.sd
 
-			data, err := ioutil.ReadFile(source);
+			data, err := ioutil.ReadFile(source)
 
 			// Check that no error has occured
-			check(err);
+			check(err)
 
 			// Get the string from the raw data
-			content := string(data);
+			content := string(data)
 
 			// Get the current working directory
-			cwd, err := os.Getwd();
+			cwd, err := os.Getwd()
 
 			// Split the file into lines
-			split := strings.Split(content,"\n");
+			split := strings.Split(content, "\n")
 
 			// Content to write to the next file
-			outstr := "";
+			outstr := ""
 
 			// New file which will be created
-			outfile := "";
+			outfile := ""
+
+			// If the target path does not exist
+			if _, err := os.Stat(target); os.IsNotExist(err) {
+
+				// Create a folder for the target
+				err := os.Mkdir(target, os.ModeDir)
+
+				// If an error has occured
+				if err != nil {
+					// Report error to terminal
+					fmt.Println("Error occured creating file", target, ":", err)
+				}
+
+			} else { // The directory does already exist
+
+				// Remove the contents (except for the git repository)
+				clear(target)
+			}
 
 			// Iterate over lines in the file
 			for _, line := range split {
 
 				// Current working directory + target folder
-				fpath := cwd + "\\" + target;
+				fpath := cwd + "\\" + target
 
 				// If the path does not exist
 				if _, err := os.Stat(fpath); os.IsNotExist(err) {
 
 					// Create a folder for the target
-					err := os.Mkdir(fpath, os.ModeDir);
-					
+					err := os.Mkdir(fpath, os.ModeDir)
+
 					// If an error has occured
-					if(err != nil) {
+					if err != nil {
 						// Report error to terminal
-						fmt.Println("Error occured creating file",fpath,":",err);
+						fmt.Println("Error occured creating file", fpath, ":", err)
 					}
 
 					// Non terminating, continue
@@ -319,83 +374,83 @@ func main(){
 					// If the line contains '='
 					// This only gets inserted at
 					// the start of teams
-					if strings.Contains(line,"=") {
+					if strings.Contains(line, "=") {
 
-						// If there is any content sitting 
+						// If there is any content sitting
 						// in the output string
 						if len(outfile) > 0 && len(outstr) > 0 {
 
 							// Write to the outfile
-							write(outfile, outstr);
+							write(outfile, outstr)
 
 							// Null the outfile
-							outfile = "";
+							outfile = ""
 
 							// Null the outstr
-							outstr = "";
+							outstr = ""
 						}
 
 						// Get the category from the title
-						category := strings.TrimSpace(strings.Split(strings.Split(line,"[")[1],"]")[0]);
+						category := strings.TrimSpace(strings.Split(strings.Split(line, "[")[1], "]")[0])
 
 						// Get the path for the category folder
-						path := fpath + "\\" + category;
+						path := fpath + "\\" + category
 
 						// If a folder does not exist for this category
 						if _, err := os.Stat(path); os.IsNotExist(err) {
 
 							// Create the missing folder
-							err := os.Mkdir(path,os.ModeDir);
+							err := os.Mkdir(path, os.ModeDir)
 
 							// Check to see if there is any errors
-							check(err);
+							check(err)
 						}
 
 						// Get the name of the team
-						name := strings.TrimSpace(strings.Split(strings.Split(line,"]")[1],"=")[0]);
+						name := strings.TrimSpace(strings.Split(strings.Split(line, "]")[1], "=")[0])
 
 						// Regex only accepts letters and numbers
-						reg, err := regexp.Compile("[^a-zA-Z0-9 -]+");
+						reg, err := regexp.Compile("[^a-zA-Z0-9 -]+")
 
 						// If the error message is not null
-						check(err);
+						check(err)
 
 						// If the string contains '/' (folder separator)
-						if strings.Contains(name,"/") {
+						if strings.Contains(name, "/") {
 
 							// Split the name into name / folder on '/'
-							subsplit := strings.Split(name,"/");
+							subsplit := strings.Split(name, "/")
 
 							// subsplit[0] = folder
 							// Remove all special characters which may break the file name
-							folder := strings.TrimSpace(reg.ReplaceAllString(subsplit[0],""));
+							folder := strings.TrimSpace(reg.ReplaceAllString(subsplit[0], ""))
 
 							// Remove all special characters which may break the file name
-							name = strings.TrimSpace(reg.ReplaceAllString(subsplit[1],""));
+							name = strings.TrimSpace(reg.ReplaceAllString(subsplit[1], ""))
 
 							// Need to create / check for another folder 'base/target/folder'
-							fullpath := path + "\\" + folder;
+							fullpath := path + "\\" + folder
 
 							// If a folder does not exist for this showdown folder
 							if _, err := os.Stat(fullpath); os.IsNotExist(err) {
 
 								// Create the missing folder
-								err := os.Mkdir(fullpath,os.ModeDir);
+								err := os.Mkdir(fullpath, os.ModeDir)
 
 								// Check to see if there is any errors
-								check(err);
+								check(err)
 							}
 
 							// Designate the filename of the new team
-							outfile = fullpath + "\\" + strings.Title(strings.ToLower(name)) + ".sd";
+							outfile = fullpath + "\\" + strings.Title(strings.ToLower(name)) + ".sd"
 
 						} else {
 
 							// No extra folder, just insert into the base folder
-							name = strings.TrimSpace(reg.ReplaceAllString(name,""));
+							name = strings.TrimSpace(reg.ReplaceAllString(name, ""))
 
 							// Designate the filename of the new team
-							outfile = path + "\\" + strings.Title(strings.ToLower(name)) + ".sd";
+							outfile = path + "\\" + strings.Title(strings.ToLower(name)) + ".sd"
 
 						}
 
@@ -408,14 +463,14 @@ func main(){
 
 					} else {
 
-						// Add the line to the output 
-						outstr += line;
+						// Add the line to the output
+						outstr += line
 					}
 
 				} else {
-					fmt.Println("Cannot write to file",fpath," as it does not exist. Skipping ...");
+					fmt.Println("Cannot write to file", fpath, " as it does not exist. Skipping ...")
 				}
-			} 
+			}
 
 			// Done now, create the last file
 
@@ -423,23 +478,23 @@ func main(){
 			if len(outfile) > 0 && len(outstr) > 0 {
 
 				// Write to the outfile
-				write(outfile, outstr);
+				write(outfile, outstr)
 			}
 
 		} else {
 
 			// Unrecognised command
-			fmt.Println("Unrecognised command: ",action);
+			fmt.Println("Unrecognised command: ", action)
 
 			// Report correct arguments to terminal
-			fmt.Println("psmanage import [source file] [target folder]");
-			fmt.Println("psmanage export [source folder] [target file]");
+			fmt.Println("psmanage import [source file] [target folder]")
+			fmt.Println("psmanage export [source folder] [target file]")
 		}
 
 	} else {
 
-		// Not enough arguments, 
-		fmt.Println("psmanage import [source file] [target folder]");
-		fmt.Println("psmanage export [source folder] [target file]");
+		// Not enough arguments,
+		fmt.Println("psmanage import [source file] [target folder]")
+		fmt.Println("psmanage export [source folder] [target file]")
 	}
 }
